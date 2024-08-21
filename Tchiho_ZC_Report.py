@@ -34,7 +34,7 @@ Table_3_new_col = ["感知-派单数量","感知-已修复", "感知-未修复",
 def delete_tablezc():
     sql = "SELECT * FROM tablezc WHERE col3 = '未修复' AND col24 = '网关承载不足派单'"
     delete_num = cursor.execute(sql)
-    if delete_tablezc != 0:
+    if delete_num != 0:
         print("有残余未删除工单数：{}".format(delete_num))
         sql = "DELETE FROM tablezc WHERE col3 = '未修复' AND col24 = '网关承载不足派单'"
         actually_delete_num = cursor.execute(sql)
@@ -43,49 +43,53 @@ def delete_tablezc():
             print("实际删除数与搜寻删除数有差异，注意错误产生原因。")
         else:
             print("实际删除数与搜寻删除数无差异，已完成删除冗余数据源操作。")
+    else:
+        print("今日数据库删除操作已更新，无需删除数据")
  
 # 执行查询
 # 执行查询：感知工单（满意度修复工单详情统计），表3
-def select_tablemyd():
-    for region in regions:
-        sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col = %s"
-        num = cursor.execute(sql, (region + "%", today))
-        Table_3.loc[region, "感知-派单数量"] = num
+def select_table_region():
+    sql = "SELECT DISTINCT col42 FROM tablezc"
+    num = cursor.execute(sql)
+    print(num)
+    results = cursor.fetchall()
+    with open("Output.txt", 'w') as file:
+        for result in results:
+            file.write(result[0] + "\n")
+    # for region in regions:
+    #     sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col = %s"
+    #     num = cursor.execute(sql, (region + "%", today))
+    #     Table_3.loc[region, "感知-派单数量"] = num
 
-        sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col3 = '已修复' AND col = %s"
-        num = cursor.execute(sql, (region + "%", today))
-        Table_3.loc[region, "感知-已修复"] = num
+    #     sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col3 = '已修复' AND col = %s"
+    #     num = cursor.execute(sql, (region + "%", today))
+    #     Table_3.loc[region, "感知-已修复"] = num
 
-        sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col40 = 'nan' AND col = %s"
-        num = cursor.execute(sql, (region + "%", today))
-        Table_3.loc[region, "感知-在途"] = num
+    #     sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col40 = 'nan' AND col = %s"
+    #     num = cursor.execute(sql, (region + "%", today))
+    #     Table_3.loc[region, "感知-在途"] = num
 
-        sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col3 = '未修复' AND col = %s"
-        num = cursor.execute(sql, (region + "%", today)) - num
-        Table_3.loc[region, "感知-未修复"] = num
+    #     sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col3 = '未修复' AND col = %s"
+    #     num = cursor.execute(sql, (region + "%", today)) - num
+    #     Table_3.loc[region, "感知-未修复"] = num
 
-    Table_3["感知-感知修复"] =Table_3["感知-已修复"] / Table_3["感知-派单数量"]
+    #     sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col = %s"
+    #     num = cursor.execute(sql, (region + "%", today))
+    #     Table_3.loc[region, "质差-派单数量"] = num
 
-# 执行查询：质差工单（派单详情），表3
-def select_tablezc():
-    sql = "DELETE FROM tablezc WHERE col3 = '未修复' AND col24 = '网关承载不足派单'"
-    deletenum = cursor.execute(sql)
-    for region in regions:
-        sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col = %s"
-        num = cursor.execute(sql, (region + "%", today))
-        Table_3.loc[region, "质差-派单数量"] = num
+    #     sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col3 = '已修复' AND COL40 != 'nan' AND col = %s"
+    #     num = cursor.execute(sql, (region + "%", today))
+    #     Table_3.loc[region, "质差-已修复"] = num
 
-        sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col3 = '已修复' AND COL40 != 'nan' AND col = %s"
-        num = cursor.execute(sql, (region + "%", today))
-        Table_3.loc[region, "质差-已修复"] = num
+    #     sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col40 = 'nan' AND col = %s"
+    #     num = cursor.execute(sql, (region + "%", today))
+    #     Table_3.loc[region, "质差-在途"] = num
 
-        sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col40 = 'nan' AND col = %s"
-        num = cursor.execute(sql, (region + "%", today))
-        Table_3.loc[region, "质差-在途"] = num
+    #     sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col3 = '未修复' AND COL40 != 'nan' AND col = %s"
+    #     num = cursor.execute(sql, (region + "%", today))
+    #     Table_3.loc[region, "质差-未修复"] = num
 
-        sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col3 = '未修复' AND COL40 != 'nan' AND col = %s"
-        num = cursor.execute(sql, (region + "%", today))
-        Table_3.loc[region, "质差-未修复"] = num
+    # Table_3["感知-感知修复"] =Table_3["感知-已修复"] / Table_3["感知-派单数量"]
 
 # 文本实现：文本6， 表3
 def chart_zc(Table_3):
@@ -114,7 +118,7 @@ def Trans_Table_mini(table):
 # select_tablezc()
 # chart_zc(Table_3)
 delete_tablezc()
-
+select_table_region()
 # 装维在途工单统计（Table_1）处理区域
 
 # Table_3 = Trans_Table(Table_3, Table_3_new_col)
@@ -127,6 +131,6 @@ delete_tablezc()
 
 # Table_3 = Table_3.round(2)
 
-print(Table_3)
+# print(Table_3)
 cursor.close()
 dbconn.close()
