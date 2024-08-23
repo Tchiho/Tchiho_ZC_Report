@@ -1,7 +1,6 @@
-﻿from numpy import delete
-import pymysql
+﻿import pymysql
 import pandas
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # 设置MySQL连接信息
 MYSQL_USER = 'report'
@@ -47,8 +46,46 @@ def delete_tablezc():
         print("今日数据库删除操作已更新，无需删除数据")
  
 # 执行查询
-# 执行查询：感知工单（满意度修复工单详情统计），表3
+# 逻辑：首先还是筛选地市的，然后才是分局，最后才是人员，其中分局按照名单进行筛选，人员按照全排列筛选
+# 执行查询：分支局筛选
 def select_table_region():
+    for region in regions:
+        sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col = %s"
+        num = cursor.execute(sql, (region + "%", today))
+        Table_3.loc[region, "感知-派单数量"] = num
+
+        sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col3 = '已修复' AND col = %s"
+        num = cursor.execute(sql, (region + "%", today))
+        Table_3.loc[region, "感知-已修复"] = num
+
+        sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col40 = 'nan' AND col = %s"
+        num = cursor.execute(sql, (region + "%", today))
+        Table_3.loc[region, "感知-在途"] = num
+
+        sql = "SELECT * FROM tablemyd WHERE col42 LIKE %s AND col3 = '未修复' AND col = %s"
+        num = cursor.execute(sql, (region + "%", today)) - num
+        Table_3.loc[region, "感知-未修复"] = num
+
+        sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col = %s"
+        num = cursor.execute(sql, (region + "%", today))
+        Table_3.loc[region, "质差-派单数量"] = num
+
+        sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col3 = '已修复' AND COL40 != 'nan' AND col = %s"
+        num = cursor.execute(sql, (region + "%", today))
+        Table_3.loc[region, "质差-已修复"] = num
+
+        sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col40 = 'nan' AND col = %s"
+        num = cursor.execute(sql, (region + "%", today))
+        Table_3.loc[region, "质差-在途"] = num
+
+        sql = "SELECT col1 FROM tablezc WHERE col42 LIKE %s AND col3 = '未修复' AND COL40 != 'nan' AND col = %s"
+        num = cursor.execute(sql, (region + "%", today))
+        Table_3.loc[region, "质差-未修复"] = num
+
+    Table_3["感知-感知修复"] =Table_3["感知-已修复"] / Table_3["感知-派单数量"]
+
+# 执行查询：分支局筛选
+def select_table_substation():
     sql = "SELECT DISTINCT col42 FROM tablezc"
     num = cursor.execute(sql)
     print(num)

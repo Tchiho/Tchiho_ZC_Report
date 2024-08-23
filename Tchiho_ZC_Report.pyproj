@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>9a4fed04-1cbc-4a1a-9682-10044e0af33c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Tchiho_ZC_Report.py</StartupFile>
+    <StartupFile>Data.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,7 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Tchiho_ZC_Report.py" />
+    <Compile Include="Data.py" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|WorkEnv" />
