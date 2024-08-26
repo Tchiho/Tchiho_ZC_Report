@@ -44,8 +44,37 @@ def delete_tablezc():
     else:
         print("今日数据库删除操作已更新，无需删除数据")
  
-# 执行查询
-# 逻辑：首先还是筛选地市的，然后才是分局，最后才是人员，其中分局按照名单进行筛选，人员按照全排列筛选
+# 错误检查：分支局变化
+def error_check_substation():
+    sql = "SELECT DISTINCT col42 FROM tablezc"
+    num = cursor.execute(sql)
+    with open("./Lib/sub.txt", "r", encoding='utf-8') as stock_sub:
+        stock_sub_lines = stock_sub.readlines()
+        for line in stock_sub_lines:
+            line = line.strip('\n')  #去掉列表中每一个元素的换行符
+
+    with open("./Lib/ignore_sub.txt", "r", encoding='utf-8') as stock_ignnre_sub:
+        stock_ignnre_sub_lines = stock_ignnre_sub.readlines()
+        for line in stock_ignnre_sub_lines:
+            line = line.strip('\n')  #去掉列表中每一个元素的换行符
+    
+    new_sub = cursor.fetchall()
+
+    if num == stock_ignnre_sub_lines.__len__() + stock_sub_lines.__len__():
+        print("分支局结构稳定无变化")
+    elif num < stock_ignnre_sub_lines.__len__() + stock_sub_lines.__len__():
+        print("分支局总数减少，请检查output_sub内分支局名单，如有异常请手动更新")
+        with open("./Lib/output_sub.txt", 'w') as file:
+            for result in new_sub:
+                file.write(result[0] + "\n")
+    else:
+        print("分支局数量增加,请检查increase_sub内分支局名单，如有异常请手动更新sub文件或者ignore_sub文件")
+        old_sub = stock_sub_lines + stock_ignnre_sub_lines
+        increase_sub = list(set(new_sub) - set(old_sub))
+        with open("./Lib/increase_sub.txt", 'w') as file:
+            for result in increase_sub:
+                file.write(result[0] + "\n")
+
 # 执行查询：分支局筛选
 def select_table_region():
     for region in regions:
@@ -83,13 +112,14 @@ def select_table_region():
 
     Table_3["感知-感知修复"] =Table_3["感知-已修复"] / Table_3["感知-派单数量"]
 
+
 # 执行查询：分支局筛选
 def select_table_substation():
     sql = "SELECT DISTINCT col42 FROM tablezc"
     num = cursor.execute(sql)
     print(num)
     results = cursor.fetchall()
-    with open("Output.txt", 'w') as file:
+    with open("./Lib/Output.txt", 'w') as file:
         for result in results:
             file.write(result[0] + "\n")
     # for region in regions:
@@ -154,7 +184,9 @@ def Trans_Table_mini(table):
 # select_tablezc()
 # chart_zc(Table_3)
 delete_tablezc()
-select_table_region()
+# select_table_region()
+error_check_substation()
+# select_table_substation()
 # 装维在途工单统计（Table_1）处理区域
 
 # Table_3 = Trans_Table(Table_3, Table_3_new_col)
