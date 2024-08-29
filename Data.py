@@ -199,6 +199,5 @@ error_check_substation()
 
 # Table_3 = Table_3.round(2)
 
-# print(Table_3)
 cursor.close()
 dbconn.close()
